@@ -1,0 +1,4 @@
+# config__valid_01.yaml
+log_file_full_path: "{PROJECT_ROOT_DIR}/log/app.log"
+log_level_file: DEBUG
+log_level_console: INFO
