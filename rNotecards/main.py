@@ -34,9 +34,15 @@ class RNotecardApp:
     """
 
     def __init__(self, excel_file_path):
+        self.choose_button = None
+        self.listbox = None
+        self.label = None
         self.excel_file_path = excel_file_path
         self.window = Tk()
-        self.window.title('Flash Card App')
+        self.window.title('rNotecards')
+
+        # Create a dictionary to store the data from each sheet
+        self.rnotecard_sets_dict = {}
 
         # Load Excel data using pandas
         self.load_excel_data()
@@ -45,9 +51,6 @@ class RNotecardApp:
         self.learn_pile = []
         self.unknown_pile = []
         self.known_pile = []
-
-        # Create a dictionary to store the data from each sheet
-        self.flashcards_data = {}
 
         # Initialize GUI elements
         self.create_gui()
@@ -63,10 +66,10 @@ class RNotecardApp:
         all_sheet_names = xls.sheet_names
 
         for sheet_name in all_sheet_names:
-            # We're looking for sheets that start with 'notecards_'
-            if sheet_name.startswith('notecards_'):
+            # We're looking for sheets that start with 'RN__'
+            if sheet_name.startswith('RN__'):
                 # Get the id part of the name
-                id_set = sheet_name.split('notecards_')[1]
+                id_set = sheet_name.split('RN__')[1]
 
                 # Read the sheet into a dataframe
                 df = pd.read_excel(xls, sheet_name, engine='openpyxl')
@@ -77,7 +80,7 @@ class RNotecardApp:
                 # Check if both 'front' and 'back' columns exist
                 if 'front' in df.columns and 'back' in df.columns:
                     # Create a new notecard set
-                    notecard_set = RNotecardSet(id)
+                    notecard_set = RNotecardSet(id_set)
 
                     # Loop through the rows in the dataframe
                     for index, row in df.iterrows():
@@ -87,9 +90,18 @@ class RNotecardApp:
                         notecard_set.notecards.append(notecard)
 
                     # Add the notecard set to the flashcards_data dictionary
-                    self.flashcards_data[id_set] = notecard_set
-                    # Add all cards from this id to the learn pile
-                    self.learn_pile.extend(notecard_set.notecards)
+                    self.rnotecard_sets_dict[id_set] = notecard_set
+
+    def choose_notecard_set(self, id_set):
+        """
+        The user chooses a notecard set from the GUI
+        :param id_set: The id of the set to choose
+        """
+        # Clear the learn pile
+        self.learn_pile.clear()
+
+        # Add all cards from this id to the learn pile
+        self.learn_pile.extend(self.rnotecard_sets_dict[id_set].notecards)
 
         # Shuffle the learn pile
         random.shuffle(self.learn_pile)
@@ -98,8 +110,19 @@ class RNotecardApp:
         """
         Create the GUI
         """
-        # create the front menu GUI using Tkinter widgets (buttons, labels, lists)
-        pass
+        # Create a label
+        self.label = Label(self.window, text="Choose a notecard set to learn:")
+        self.label.pack()
+
+        # Create a listbox for the notecard sets
+        self.listbox = Listbox(self.window)
+        for id_set in self.rnotecard_sets_dict:
+            self.listbox.insert(END, id_set)
+        self.listbox.pack()
+
+        # Create a button to choose the selected notecard set
+        self.choose_button = Button(self.window, text="Choose this set", command=self.choose_notecard_set_from_listbox)
+        self.choose_button.pack()
 
     def handle_card(self):
         """
@@ -124,6 +147,16 @@ class RNotecardApp:
         """
         # This function allows users to manually move cards between piles
         pass
+
+    def choose_notecard_set_from_listbox(self):
+        """
+        Choose a notecard set from the listbox
+        """
+        # Get the selected id_set
+        id_set = self.listbox.get(ACTIVE)
+
+        # Choose the notecard set
+        self.choose_notecard_set(id_set)
 
     def run(self):
         """
