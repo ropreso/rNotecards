@@ -23,7 +23,7 @@ retain information.
 ## Installation
 
 1. Program is only tested as working on Python 3.10, but you can try on other versions.
-2. git clone https://github.com/username/repository.git /path/to/destination-folder.
+2. git clone https://github.com/ropreso/rNotecards.git /path/to/destination-folder.
 3. Create virtual environment and source it.
 4. python3 /path/to/destination-folder/setup.py
 

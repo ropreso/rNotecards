@@ -14,9 +14,8 @@ class RNotecard:
     A single notecard
     """
 
-    def __init__(self, front, back):
-        self.front = front
-        self.back = back
+    def __init__(self, data):
+        self.data = data
 
 
 class RNotecardSet:
@@ -63,6 +62,20 @@ class RNotecardApp:
         # Initialize GUI elements
         self.create_gui()
 
+    def save_to_excel(self):
+        """
+        Save notecard data back to Excel
+        """
+        with pd.ExcelWriter(self.excel_file_path, engine='openpyxl') as writer:
+            for id_set, rnotecard_set in self.rnotecard_sets_dict.items():
+                # Convert the notecard set to a DataFrame
+                data = [notecard.data for notecard in rnotecard_set.notecards]
+                df = pd.DataFrame(data)
+
+                # Save the DataFrame to an Excel sheet
+                sheet_name = f'RN__{id_set}'
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+
     def flip_card(self):
         """
         Flip a card
@@ -73,11 +86,11 @@ class RNotecardApp:
 
         if self.current_card.is_front:
             # If the card is currently showing the front, display the back
-            Label(self.card_window, text=self.current_card.back).pack()
+            Label(self.card_window, text=self.current_card.data.get('back', '')).pack()
             self.current_card.is_front = False
         else:
             # If the card is currently showing the back, display the front
-            Label(self.card_window, text=self.current_card.front).pack()
+            Label(self.card_window, text=self.current_card.data.get('front', '')).pack()
             self.current_card.is_front = True
 
         # Create a button to mark the card as known
@@ -136,23 +149,18 @@ class RNotecardApp:
                 # Read the sheet into a dataframe
                 df = pd.read_excel(xls, sheet_name, engine='openpyxl')
 
-                # Make sure column names are all lowercase
-                df.columns = map(str.lower, df.columns)
+                # Create a new notecard set
+                notecard_set = RNotecardSet(id_set)
 
-                # Check if both 'front' and 'back' columns exist
-                if 'front' in df.columns and 'back' in df.columns:
-                    # Create a new notecard set
-                    notecard_set = RNotecardSet(id_set)
+                # Loop through the rows in the dataframe
+                for index, row in df.iterrows():
+                    # Create a new notecard with a dictionary to hold all columns
+                    notecard = RNotecard({col: row[col] for col in df.columns})
+                    # Add the notecard to the set
+                    notecard_set.notecards.append(notecard)
 
-                    # Loop through the rows in the dataframe
-                    for index, row in df.iterrows():
-                        # Create a new notecard
-                        notecard = RNotecard(row['front'], row['back'])
-                        # Add the notecard to the set
-                        notecard_set.notecards.append(notecard)
-
-                    # Add the notecard set to the flashcards_data dictionary
-                    self.rnotecard_sets_dict[id_set] = notecard_set
+                # Add the notecard set to the flashcards_data dictionary
+                self.rnotecard_sets_dict[id_set] = notecard_set
 
     def choose_notecard_set(self, id_set):
         """
@@ -220,8 +228,8 @@ class RNotecardApp:
             selected_deck = self.rnotecard_sets_dict[self.selected_deck_id]
 
             for notecard in selected_deck.notecards:
-                front_snippet = notecard.front[:100]  # show first 100 characters, adjust as needed
-                back_snippet = notecard.back[:100]  # show first 100 characters, adjust as needed
+                front_snippet = notecard.data.get('front', ''[:100])  # show first 100 characters, adjust as needed
+                back_snippet = notecard.data.get('back', ''[:100])  # show first 100 characters, adjust as needed
                 snippet = f"Front: {front_snippet}... Back: {back_snippet}..."
                 Label(inspect_window, text=snippet).pack()
         else:
@@ -238,7 +246,7 @@ class RNotecardApp:
         self.card_window = Toplevel(self.window)
 
         # Display the card's front
-        Label(self.card_window, text=self.current_card.front).pack()
+        Label(self.card_window, text=self.current_card.data.get('front')).pack()
 
         # Create a button to flip the card
         flip_button = Button(self.card_window, text="Flip Card", command=self.flip_card)
@@ -342,7 +350,7 @@ class RNotecardApp:
             self.card_window.title('Learning Card')
 
             # Display the card's front
-            Label(self.card_window, text=self.current_card.front).pack()
+            Label(self.card_window, text=self.current_card.data.get('front', '')).pack()
 
             # Create a button to flip the card
             flip_button = Button(self.card_window, text="Flip", command=self.flip_card)
@@ -385,7 +393,7 @@ def main(excel_file_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='excel file path')
-    parser.add_argument('excel_file_path', metavar='EFP', type=str,
+    parser.add_argument('excel_file_path', metavar='ExcelFilePath', type=str,
                         help='path of the excel file with notecard worksheets')
 
     args = parser.parse_args()
