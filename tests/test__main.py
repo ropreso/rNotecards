@@ -12,7 +12,9 @@ import gc
 
 
 def test__load_excel_data():
-    test_app = RNotecardApp(str(PROJECT_ROOT_DIR / 'tests' / 'data' / 'test__notecards_data.xlsx'))
+    file_path = str(PROJECT_ROOT_DIR / 'tests' / 'data' / 'test__notecards_data.xlsx')
+    backup_file_path = file_path.split('.xlsx')[0] + '_backup.xlsx'
+    test_app = RNotecardApp(file_path, backup_file_path)
 
     expected_keys = ['deck01', 'deck02']
     actual_keys = list(test_app.rnotecard_sets_dict.keys())
@@ -51,10 +53,11 @@ def test__save_to_excel():
     # Step 1: Create a copy of the original Excel file for testing
     original_excel_path = str(PROJECT_ROOT_DIR / 'tests' / 'data' / 'test__notecards_data.xlsx')
     temp_excel_path = str(PROJECT_ROOT_DIR / 'tests' / 'data' / 'temp_test__notecards_data.xlsx')
+    backup_temp_excel_file_path = temp_excel_path.split('.xlsx')[0] + '_backup.xlsx'
     shutil.copyfile(original_excel_path, temp_excel_path)
 
     # Step 2: Load the Excel file into an RNotecardApp object
-    test_app = RNotecardApp(temp_excel_path)
+    test_app = RNotecardApp(temp_excel_path, backup_temp_excel_file_path)
 
     # Step 3: Make some changes to the notecards
     new_card = RNotecard({'front': 'new front', 'back': 'new back'})
@@ -74,4 +77,20 @@ def test__save_to_excel():
         assert ("new front", "new back") in zip(df['front'], df['back']), "New card was not saved to Excel"
 
     # Clean up: Remove the temporary Excel file
+    os.remove(temp_excel_path)
+
+
+def test__rnotecard():
+    original_excel_path = str(PROJECT_ROOT_DIR / 'tests' / 'data' / 'test__notecards_data__02.xlsx')
+    temp_excel_path = str(PROJECT_ROOT_DIR / 'tests' / 'data' / 'temp_test__notecards_data__02.xlsx')
+    backup_temp_excel_file_path = temp_excel_path.split('.xlsx')[0] + '_backup.xlsx'
+    shutil.copyfile(original_excel_path, temp_excel_path)
+
+    # Step 2: Load the Excel file into an RNotecardApp object
+    test_app = RNotecardApp(temp_excel_path, backup_temp_excel_file_path)
+    test_app.rnotecard_sets_dict['interview_quests'].notecards[0].calculate_total_perf_score()
+    assert test_app.rnotecard_sets_dict['interview_quests'].notecards[0].data.get('total_perf_score') == -2.875
+
+    del test_app
+    gc.collect()
     os.remove(temp_excel_path)

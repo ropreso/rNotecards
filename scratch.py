@@ -1,6 +1,11 @@
+
+
 """
 for refinement
 """
 from rNotecards.main import main
 
-main('C:\\Users\\pruppets\\PycharmProjects\\rNotecards\\tests\\data\\test__notecards_data.xlsx')
+for card in self.learn_pile:
+    if card.data.get('front') == 'Can you tell me about yourself (professional)?':
+        x = card
+        break
