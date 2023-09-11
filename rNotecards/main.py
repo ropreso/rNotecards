@@ -563,11 +563,15 @@ class RNotecardApp:
 
         # Construct the prompt
         prompt = (
-            'Please provide an answer like the following: '
-            '"Answer 1 Score: $X$; Answer 2 Score: $Y$; $Revised Answer Here$;'
-            ' Revised Answer Score: $Z$". The $ symbol designates a placeholder. At the end of this prompt, you will be'
-            ' given an interview question consistent with that supplied pdf. Two answers will be provided, Answer 1 and'
-            f' Answer 2. Here now is the question and two answers: '
+            'Please provide an answer like the following: "Answer 1 Score: \$X\$; Answer 2 Score: \$Y\$; \$Revised '
+            'Answer Here\$; Revised Answer Score: \$Z\$".  The \$ symbol designates a placeholder.  At the end of '
+            'this prompt, you will be given an interview question consistent with that  supplied pdf.  Two answers '
+            'will be provided, Answer 1 and Answer 2.  X should be the score between 1 and 10 in terms of the quality '
+            'of the answer in the context of a job interview (do not rate down for spelling or grammatical mistakes). '
+            ' Y and Z live in the same domain as X.  If X is greater'
+            'than Y, then the revised answer should equal Answer 1, and Z will equal X.  If Y is greater than X, '
+            'you should attempt to incorporate the personalized elements of X in the revised answer, and you should '
+            'ensure Z is at least as large as Y.  Here now is the question and two answers'
             f' Question: {current_question}... Answer 1: {answer_1}...'
             f' Answer 2: {answer_2}'
         )
