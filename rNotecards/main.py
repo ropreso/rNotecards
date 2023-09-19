@@ -130,6 +130,7 @@ class RNotecardApp:
         self.module_dropdown = None
         self.answer1_score_var = None
         self.answer2_score_var = None
+        self.revised_answer_score_var = None
         self.revised_answer_var = None
         self.window = Tk()
         self.window.title('rNotecards')
@@ -397,6 +398,23 @@ class RNotecardApp:
         # Call the main menu
         self.create_main_menu()
 
+    def skip_question(self):
+        """
+        Resets the rounds_since_tested data value to 0 in the current_card object, saves the data to an Excel file,
+        clears all widgets from the window, and creates the main menu.
+
+        Parameters:
+            self (SkipQuestion): The SkipQuestion object.
+
+        Returns:
+            None
+        """
+        self.current_card.data['rounds_since_tested'] = 0
+        self.save_to_excel()
+        for widget in self.window.winfo_children():
+            widget.pack_forget()
+        self.create_main_menu()
+
     def create_main_menu(self):
         """
         Create the main menu GUI
@@ -446,7 +464,7 @@ class RNotecardApp:
                     self.current_card = card
 
             self.window.geometry("800x600")  # Sets the window size to 800 pixels wide and 600 pixels high
-            self.question_label = Label(self.window, text=self.current_card.data.get('front') + "\n")
+            self.question_label = Label(self.window, text=self.current_card.data.get('front') + "\n", wraplength=750)
             self.question_label.pack()
 
             # Text widget to accept user input (answer), replacing the previous Entry widget
@@ -456,6 +474,10 @@ class RNotecardApp:
             # Button to submit the answer
             self.submit_answer_button = Button(self.window, text="Submit Answer", command=self.submit_answer)
             self.submit_answer_button.pack()
+
+            # Add the Skip Question button
+            skip_question_button = Button(self.window, text="Skip Question", command=self.skip_question)
+            skip_question_button.pack()
 
     def update_rnotecard_data(self):
         """
@@ -480,13 +502,30 @@ class RNotecardApp:
         """
         answer1_score = int(self.answer1_score_var.get())
         answer2_score = int(self.answer2_score_var.get())
-        revised_answer = self.revised_answer_var.get()
+        revised_answer_score = int(self.revised_answer_score_var.get())
+        revised_answer = self.revised_answer_var.get('1.0', 'end')
 
         # Update the current card
+        self.current_card.data['l4_answer1_score'] = self.current_card.data['l3_answer1_score']
+        self.current_card.data['l3_answer1_score'] = self.current_card.data['l2_answer1_score']
+        self.current_card.data['l2_answer1_score'] = self.current_card.data['l1_answer1_score']
+        self.current_card.data['l1_answer1_score'] = answer1_score
+
+        self.current_card.data['l4_answer2_score'] = self.current_card.data['l3_answer2_score']
+        self.current_card.data['l3_answer2_score'] = self.current_card.data['l2_answer2_score']
+        self.current_card.data['l2_answer2_score'] = self.current_card.data['l1_answer2_score']
+        self.current_card.data['l1_answer2_score'] = answer2_score
+
+        self.current_card.data['l4_revised_answer_score'] = self.current_card.data['l3_revised_answer_score']
+        self.current_card.data['l3_revised_answer_score'] = self.current_card.data['l2_revised_answer_score']
+        self.current_card.data['l2_revised_answer_score'] = self.current_card.data['l1_revised_answer_score']
+        self.current_card.data['l1_revised_answer_score'] = revised_answer_score
+
         self.current_card.data['l4_perf_score'] = self.current_card.data['l3_perf_score']
         self.current_card.data['l3_perf_score'] = self.current_card.data['l2_perf_score']
         self.current_card.data['l2_perf_score'] = self.current_card.data['l1_perf_score']
-        self.current_card.data['l1_perf_score'] = answer1_score - answer2_score
+        self.current_card.data['l1_perf_score'] = answer1_score - revised_answer_score
+
         self.current_card.data['back'] = revised_answer
         self.current_card.data['rounds_since_tested'] = -1
 
@@ -526,6 +565,7 @@ class RNotecardApp:
         # Initialize StringVar for each entry
         self.answer1_score_var = StringVar()
         self.answer2_score_var = StringVar()
+        self.revised_answer_score_var = StringVar()
         self.revised_answer_var = StringVar()
 
         # Create Entry for Answer 1 Score
@@ -536,9 +576,19 @@ class RNotecardApp:
         Label(self.window, text="Answer 2 Score:").pack()
         Entry(self.window, textvariable=self.answer2_score_var).pack()
 
+        # Create Entry for Revised Answer Score
+        Label(self.window, text="Revised Answer Score:").pack()
+        Entry(self.window, textvariable=self.revised_answer_score_var).pack()
+
         # Create Entry for Revised Answer
+        # Label(self.window, text="Revised Answer:").pack()
+        # Entry(self.window, textvariable=self.revised_answer_var).pack()
         Label(self.window, text="Revised Answer:").pack()
-        Entry(self.window, textvariable=self.revised_answer_var).pack()
+
+        # Create a Text widget for multi-line input
+        self.revised_answer_var = Text(self.window, wrap='word', width=50,
+                                       height=10)  # You can adjust width and height as needed
+        self.revised_answer_var.pack()
 
         # Create Submit Button
         submit_button = Button(self.window, text="Submit Scores and Revised Answer", command=self.update_rnotecard_data)
