@@ -134,6 +134,7 @@ class RNotecardApp:
         self.answer2_score_var = None
         self.revised_answer_score_var = None
         self.revised_answer_var = None
+        self.filtered_indices = []
         self.window = Tk()
         self.window.title('rNotecards')
 
@@ -419,21 +420,19 @@ class RNotecardApp:
 
     def filter_questions(self):
         """
-        Filter the questions in the question listbox based on a search query.
+        Filters the questions based on a search term and updates the question listbox.
 
         Parameters:
-            self (object): The instance of the class.
 
         Returns:
             None
         """
-        query = search_var.get().lower()  # Assuming search_var is a Tkinter StringVar
-        question_listbox.delete(0, END)  # Clear the current list
-
-        for i, card in enumerate(self.learn_pile):
-            question_text = card.data.get('front', '')
-            if query in question_text.lower():
-                question_listbox.insert(END, f"{i + 1}. {question_text[:100]}...")  # Show first 100 characters
+        search_term = search_var.get().lower()
+        self.filtered_indices = [i for i, card in enumerate(self.learn_pile) if
+                                 search_term in card.data.get('front', '').lower()]
+        question_listbox.delete(0, END)
+        for i in self.filtered_indices:
+            question_listbox.insert(END, f"{i + 1}. {self.learn_pile[i].data.get('front', '')[:100]}...")
 
     def choose_question(self):
         """
@@ -468,7 +467,7 @@ class RNotecardApp:
 
         def on_select_question():
             """
-            This function is triggered when a question is selected from the question_listbox.
+            Selects a question from the question listbox and updates the current card.
 
             Parameters:
 
@@ -477,9 +476,11 @@ class RNotecardApp:
             """
             selected_idx = question_listbox.curselection()
             if selected_idx:
-                self.current_card = self.learn_pile[selected_idx[0]]
+                # Use the filtered_indices list to find the corresponding question in learn_pile
+                original_idx = self.filtered_indices[selected_idx[0]]
+                self.current_card = self.learn_pile[original_idx]
                 choose_question_window.destroy()
-                self.question_label.config(text=self.current_card.data.get('front') + "\n")  # Update the question label
+                self.question_label.config(text=self.current_card.data.get('front') + "\n")
 
         select_button = Button(choose_question_window, text="Select", command=on_select_question)
         select_button.pack()
