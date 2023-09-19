@@ -127,6 +127,7 @@ class RNotecardApp:
         self.answer_entry = None
         self.answer_submitted_window = None
         self.submit_answer_button = None
+        self.skip_question_button = None
         self.module_dropdown = None
         self.answer1_score_var = None
         self.answer2_score_var = None
@@ -476,8 +477,8 @@ class RNotecardApp:
             self.submit_answer_button.pack()
 
             # Add the Skip Question button
-            skip_question_button = Button(self.window, text="Skip Question", command=self.skip_question)
-            skip_question_button.pack()
+            self.skip_question_button = Button(self.window, text="Skip Question", command=self.skip_question)
+            self.skip_question_button.pack()
 
     def update_rnotecard_data(self):
         """
@@ -559,6 +560,7 @@ class RNotecardApp:
         self.question_label.pack_forget()
         self.answer_entry.pack_forget()
         self.submit_answer_button.pack_forget()
+        self.skip_question_button.pack_forget()
 
         self.window.title("Answer Submitted")
 
