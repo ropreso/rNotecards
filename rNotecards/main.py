@@ -128,6 +128,7 @@ class RNotecardApp:
         self.answer_submitted_window = None
         self.submit_answer_button = None
         self.skip_question_button = None
+        self.choose_question_button = None
         self.module_dropdown = None
         self.answer1_score_var = None
         self.answer2_score_var = None
@@ -416,6 +417,73 @@ class RNotecardApp:
             widget.pack_forget()
         self.create_main_menu()
 
+    def filter_questions(self):
+        """
+        Filter the questions in the question listbox based on a search query.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        query = search_var.get().lower()  # Assuming search_var is a Tkinter StringVar
+        question_listbox.delete(0, END)  # Clear the current list
+
+        for i, card in enumerate(self.learn_pile):
+            question_text = card.data.get('front', '')
+            if query in question_text.lower():
+                question_listbox.insert(END, f"{i + 1}. {question_text[:100]}...")  # Show first 100 characters
+
+    def choose_question(self):
+        """
+        Open a new window to choose a question.
+
+        Parameters:
+
+        Returns:
+            None
+        """
+        # noinspection PyGlobalUndefined
+        global search_var  # Declare as global for demonstration; better to make it an instance variable
+
+        choose_question_window = Toplevel(self.window)
+        choose_question_window.title('Choose a Question')
+        choose_question_window.geometry('800x600')  # Set the window size to 800x600
+
+        search_var = StringVar()
+        search_entry = Entry(choose_question_window, textvariable=search_var)
+        search_entry.pack()
+
+        search_button = Button(choose_question_window, text="Search", command=self.filter_questions)
+        search_button.pack()
+
+        # noinspection PyGlobalUndefined
+        global question_listbox  # Declare as global for demonstration; better to make it an instance variable
+        question_listbox = Listbox(choose_question_window, width=200)  # Set the width of the Listbox
+        question_listbox.pack()
+
+        for i, card in enumerate(self.learn_pile):
+            question_listbox.insert(END, f"{i + 1}. {card.data.get('front', '')[:100]}...")  # Show first 100 characters
+
+        def on_select_question():
+            """
+            This function is triggered when a question is selected from the question_listbox.
+
+            Parameters:
+
+            Returns:
+                None
+            """
+            selected_idx = question_listbox.curselection()
+            if selected_idx:
+                self.current_card = self.learn_pile[selected_idx[0]]
+                choose_question_window.destroy()
+                self.question_label.config(text=self.current_card.data.get('front') + "\n")  # Update the question label
+
+        select_button = Button(choose_question_window, text="Select", command=on_select_question)
+        select_button.pack()
+
     def create_main_menu(self):
         """
         Create the main menu GUI
@@ -479,6 +547,10 @@ class RNotecardApp:
             # Add the Skip Question button
             self.skip_question_button = Button(self.window, text="Skip Question", command=self.skip_question)
             self.skip_question_button.pack()
+
+            # Add this line where you create your buttons
+            self.choose_question_button = Button(self.window, text="Choose Question", command=self.choose_question)
+            self.choose_question_button.pack()
 
     def update_rnotecard_data(self):
         """
