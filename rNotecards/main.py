@@ -500,9 +500,9 @@ class RNotecardApp:
         Returns:
         - None
         """
-        answer1_score = int(self.answer1_score_var.get())
-        answer2_score = int(self.answer2_score_var.get())
-        revised_answer_score = int(self.revised_answer_score_var.get())
+        answer1_score = float(self.answer1_score_var.get())
+        answer2_score = float(self.answer2_score_var.get())
+        revised_answer_score = float(self.revised_answer_score_var.get())
         revised_answer = self.revised_answer_var.get('1.0', 'end')
 
         # Update the current card
